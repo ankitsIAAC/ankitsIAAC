@@ -1,0 +1,7 @@
+The CloudFormation templates creates a MetricFiler for Failed Authentication error occurs during AWS console sign in because of incorrect password.
+The template also creates an Alarm on top of the metric filter which sends a SNS alarm.
+
+Prerequisites:
+Create a SNS which is subscried to a topic
+Create cloudtrail for management events which pushes logs to CloudWatch.
+1

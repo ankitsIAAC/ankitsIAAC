@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates a metric filter and alarm for AWS console sign in authentication failures
+
+Parameters:
+  LogGroupName:
+    Type: String
+    Description: Enter the log group name where you want to create the metric filter
+  SNSTopicArn: 
+    Type: String
+    Description: Enter the ARN of the SNS topic using which you want to psh alarms
+  MetricNamespace:
+    Type: String
+    Description: Enter Metric NameSpace
+    Default: ConsoleAuthenticationFailureCount
+  MetricName:
+    Type: String
+    Description: Enter Metric Name
+    Default: ConsoleAuthenticationFailureCount
+
+Resources:
+  MetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern:  '{ ($.eventName = "ConsoleLogin") && ($.errorMessage = "Failed authentication") }'
+      LogGroupName: !Ref LogGroupName
+      MetricTransformations:
+        - MetricName: !Ref MetricName
+          MetricNamespace: !Ref MetricNamespace
+          MetricValue: "1"
+  MetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: TRUE
+      AlarmActions:
+        - !Ref SNSTopicArn
+      AlarmDescription: Tere has been an attempt to login to your AWS console because of incorrect password
+      AlarmName: ConsoleSigninFailure
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      MetricName: !Ref MetricName
+      Namespace: !Ref MetricNamespace
+      Period: 60
+      Statistic: Sum
+      Threshold: 3
+      EvaluationPeriods: 1
