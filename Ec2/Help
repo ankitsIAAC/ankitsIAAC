@@ -1,0 +1,1 @@
+The cloudformation template creates an Ec2 instance in the subnet, AZ of your choice and with Key, Sec group, Name, Type that you choose in parameters.
