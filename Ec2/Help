@@ -1,1 +1,2 @@
-The cloudformation template creates an Ec2 instance in the subnet, AZ of your choice and with Key, Sec group, Name, Type that you choose in parameters.
+Ec2 Basic - The cloudformation template creates an Ec2 instance in the subnet, AZ of your choice and with Key, Sec group, Name, Type that you choose in parameters.
+Ec2WithSG - The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Name, Type that you choose in parameters
