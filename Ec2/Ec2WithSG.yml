@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 #######################################################################################################################################################
-# Description: The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Sec group, Name, Type that you choose in parameters
+# Description: The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Name, Type that you choose in parameters
 #
 # Stack History:
 # Version       Date            Created by             Summary
@@ -49,7 +49,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
        GroupDescription: Security group for instance created using CF
-       GroupName: !Join ["", [!Ref InstanceName, sec-group]]
+       GroupName: !Join ["", [!Ref InstanceName, -, sec-group]]
        SecurityGroupEgress:
           - IpProtocol: tcp
             FromPort: 80
