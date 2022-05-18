@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 ##########################################################################################################################################################################
 # Description: The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Name, Type that you choose in parameters. If you choose
-#               production a custom root volume is created and if Dev is chosen  
+#               production a custom root volume is created and if Dev is chosen the default root volume of AMI is created.
 #
 # Stack History:
 # Version       Date            Created by           
