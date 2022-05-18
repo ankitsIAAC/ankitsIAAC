@@ -4,9 +4,9 @@ AWSTemplateFormatVersion: 2010-09-09
 #               production a custom root volume is created and if Dev is chosen  
 #
 # Stack History:
-# Version       Date            Created by             Summary
-# -------       -----------     ------------------      -------------------------------------------------------
-# 1.0           17-May-2022     Ankit Pant           Baseline template
+# Version       Date            Created by           
+# -------       -----------     ------------------     
+# 1.0           18-May-2022     Ankit Pant           
 ##########################################################################################################################################################################
 Description: The template creates an Ec2 instance.
 
