@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: 2010-09-09
+##########################################################################################################################################################################
+# Description: The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Name, Type that you choose in parameters. If you choose
+#               production a custom root volume is created and if Dev is chosen  
+#
+# Stack History:
+# Version       Date            Created by             Summary
+# -------       -----------     ------------------      -------------------------------------------------------
+# 1.0           17-May-2022     Ankit Pant           Baseline template
+##########################################################################################################################################################################
+Description: The template creates an Ec2 instance.
+
+Parameters: 
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Enter the id of the subnet where ypu want to create the instance
+  AmiId:
+    Type: String
+    Description: Enter the AWS AMI id
+  InstanceType:
+    Type: String
+    Description: Enter the instance type e.g t2.micro, m1.small
+    Default: t2.micro
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: enter the AZ where you want to create your instance
+  Ec2KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Enter an existing key pair
+  InstanceName:
+    Type: String
+    Description: Enter a name for your instance
+    MinLength: 3
+    MaxLength: 15
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  Enviornment:
+    Type: String
+    Description: Enter the enviornment where you want the instance deployed
+    AllowedValues:
+      - Production
+      - Development
+    ConstraintDescription: must specify Production or Development.
+#  DeviceName:
+
+
+Conditions: 
+  isProduction: !Equals [!Ref Enviornment, Production]
+  
+Resources:
+  Ec2Instace:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref Ec2KeyPair
+      SecurityGroupIds:
+        - !GetAtt SecurityGp.GroupId
+      SubnetId: !Ref SubnetId
+      BlockDeviceMappings:
+        !If
+            - isProduction
+            -
+              - DeviceName: /dev/xvda
+                Ebs:
+                      VolumeType: gp2 
+                      VolumeSize: 21
+            - !Ref "AWS::NoValue"
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+
+  VolAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: isProduction
+    Properties:
+      Device: /dev/xvdg # Enhancement
+      InstanceId: !Ref Ec2Instace
+      VolumeId: !Ref Vol
+  Vol:  
+    Type: AWS::EC2::Volume
+    Condition: isProduction
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      Size: 10
+      VolumeType: gp2 # Enhancements
+      Tags:
+        - Key: "Name"
+          Value: "CFT Root Vol"
+  SecurityGp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+       GroupDescription: Security group for instance created using CF
+       GroupName: !Join ["", [!Ref InstanceName, sec-group]]
+       SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+       SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+       VpcId: !Ref VpcId
