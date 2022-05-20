@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: 2010-09-09
+#######################################################################################################################################################
+# Description: The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Name, Type that you choose in parameters
+#               If you choose Ddrive and Edrive a custom D and E drive are created and attached to the instance and if you choose nothing they are not created.
+#
+# Stack History:
+# Version       Date            Created by             Summary
+# -------       -----------     ------------------      -------------------------------------------------------
+# 1.0           19-May-2022     Ankit Pant           Baseline template
+######################################################################################################################################################
+Description: The template creates an Ec2 instance.
+
+Parameters: 
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Enter the id of the subnet where ypu want to create the instance
+  AmiId:
+    Type: String
+    Description: Enter the AWS AMI id
+  InstanceType:
+    Type: String
+    Description: Enter the instance type e.g t2.micro, m1.small
+    Default: t2.micro
+  AvailabilityZone:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Description: enter the AZ where you want to create your instance
+  Ec2KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Enter an existing key pair
+  InstanceName:
+    Type: String
+    Description: Enter a name for your instance
+    MinLength: 3
+    MaxLength: 10
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  NeedVolumeD:
+    Type: String
+    Description: Do you want a D drive? Enter Yes or No
+    ConstraintDescription: Enter Yes or No
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  VolumeDSize:
+    Type: String
+  NeedVolumeE:
+    Type: String
+    Description: Do you want a E drive? Enter Yes or No
+    ConstraintDescription: Enter Yes or No
+    AllowedValues:
+      - 'Yes'
+      - 'No'
+  VolumeESize:
+    Type: String
+  
+Conditions: 
+  isDRequired: !Equals [!Ref NeedVolumeD, 'Yes']
+  isERequired: !Equals [!Ref NeedVolumeE, 'Yes']
+  HasDSize: 
+    !Not
+      - !Equals
+        - ''
+        - !Ref VolumeDSize
+  HasESize: 
+    !Not
+      - !Equals
+        - ''
+        - !Ref VolumeESize
+  
+Resources:
+  Ec2Instace:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref Ec2KeyPair
+      SecurityGroupIds: 
+        - !GetAtt SecurityGp.GroupId
+      SubnetId: !Ref SubnetId
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+  SecurityGp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+       GroupDescription: Security group for instance created using CF
+       GroupName: !Join ["", [!Ref InstanceName, -, sec-group]]
+       SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+
+       SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+       VpcId: !Ref VpcId
+  VolumeD:
+    Type: AWS::EC2::Volume
+    Condition: isDRequired
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      Size: 
+        !If
+          - HasDSize
+          - !Ref VolumeDSize
+          - !Ref "AWS::NoValue"
+      Tags:
+        - Key: Name
+          Value: !Join ["", [!Ref InstanceName, -, Dvolume]]
+      VolumeType: gp2
+  VolumeE:
+    Type: AWS::EC2::Volume
+    Condition: isERequired
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      Size:
+        !If
+          - HasESize
+          - !Ref VolumeESize
+          - !Ref "AWS::NoValue"
+      Tags:
+        - Key: Name
+          Value: !Join ["", [!Ref InstanceName, -, Dvolume]]
+      VolumeType: gp2
+  MountD:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: isDRequired
+    Properties:
+      Device: /dev/sdd
+      InstanceId: !Ref Ec2Instace
+      VolumeId: !Ref VolumeD
+  MountE:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: isERequired
+    Properties:
+      Device: /dev/sde
+      InstanceId: !Ref Ec2Instace
+      VolumeId: !Ref VolumeE
