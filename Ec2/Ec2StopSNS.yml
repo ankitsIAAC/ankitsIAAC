@@ -1,0 +1,79 @@
+###############################################################################################################
+# Description: Create an eventbridge rule and SNS topic with access policy to send notification when Ec2 stops.
+#
+# Stack History:
+# Version       Date            Created by             
+# -------       -----------     ------------------     
+# 1.0           23-May-2022     Ankit Pant           
+#################################################################################################################
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Create an eventbridge rule and SNS topic with access policy to send notification when Ec2 stops.
+
+Resources:
+
+  EC2StopSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: Ec2StopNotification
+      DisplayName: Ec2StopNotification
+  # Allow EventBridge to invoke SNS
+  EventBridgeToToSnsPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties: 
+      PolicyDocument:
+        Version: "2008-10-17"
+        Statement: 
+          - Sid: "EventBridge access to Publish SNS"
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: SNS:Publish 
+            Resource: !Ref EC2StopSNS
+          - Sid: "__default_statement_ID"
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SNS:GetTopicAttributes
+              - SNS:SetTopicAttributes
+              - SNS:AddPermission
+              - SNS:RemovePermission
+              - SNS:DeleteTopic
+              - SNS:Subscribe
+              - SNS:ListSubscriptionsByTopic
+              - SNS:Publish
+            Resource: !Ref EC2StopSNS
+            Condition: 
+              StringEquals: 
+                AWS::SourceOwner: !Ref AWS::AccountId
+      Topics:
+        - !Ref EC2StopSNS
+
+  EventRule: 
+    Type: AWS::Events::Rule
+    Properties:
+      Name: Ec2StopRuleTesting
+      Description: "Rule to send notification when EC2 stops."
+      EventPattern:
+        source: 
+          - "aws.ec2"
+        detail-type: 
+          - "EC2 Instance State-change Notification"
+        detail: 
+          state: 
+            - "stopped"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: !Ref EC2StopSNS
+          Id: "Ec2StopSNS"
+          InputTransformer:
+            InputPathsMap:
+              "instance-id" : "$.detail.instance-id"
+              "state" : "$.detail.state"
+              "time" : "$.time"
+              "region" : "$.region"
+              "account" : "$.account"
+            InputTemplate: | 
+              "At <time>, the status of your EC2 instance <instance-id> on account <account> in the AWS Region <region> has changed to <state>."

@@ -4,3 +4,5 @@ Ec2withRootVolume - The template creates Ec2 instance and security group in the 
                     production a custom root volume is created and if Dev is chosen the default root volume of AMI is created.
 Ec2WithEbsVolumes - The template creates Ec2 instance and security group in the subnet, AZ of your choice and with Key, Name, Type that you choose in parameters
 	              If you choose Ddrive and Edrive a custom D and E drive are created and attached to the instance and if you choose nothing they are not created.
+
+Ec2StopSNS - Create an eventbridge rule and SNS topic with access policy to send notification when Ec2 stops.
