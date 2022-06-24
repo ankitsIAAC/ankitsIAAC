@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates a backup for ec2 instances
+
+Resources:
+  Tier1BackupPlan:
+    Type: AWS::Backup::BackupPlan
+    Properties:
+      BackupPlan:
+        BackupPlanName: Tier1Backup
+        BackupPlanRule:
+          -
+            RuleName: Tier1BackupRule
+            TargetBackupVault: !Ref Tier1BackupVault
+            CompletionWindowMinutes: 120
+            ScheduleExpression: cron(0 12 * * ? *)
+            StartWindowMinutes: 60
+
+
+  Tier1BackupSelection:
+    Type: AWS::Backup::BackupSelection
+    Properties:
+      BackupPlanId: !Ref Tier1BackupPlan
+      BackupSelection:
+        IamRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSBackupDefaultServiceRole" 
+        SelectionName: Tier1Selection
+        ListOfTags:
+          - 
+            ConditionKey: "Backup"
+            ConditionType: STRINGEQUALS
+            ConditionValue: "True"
+  Tier1BackupVault:
+    Type: AWS::Backup::BackupVault
+    Properties:
+      BackupVaultName: "Tier1BackupVault"
