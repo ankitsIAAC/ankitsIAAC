@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: 2010-09-09
+#######################################################################################################################################################
+# Description: Creates 3 VPC endpoint services for your private ev2 instances to connect to SSM agent and come under fleet manager.
+#
+# Stack History:
+# Version       Date            Created by             Summary
+# -------       -----------     ------------------      -------------------------------------------------------
+# 1.0           27-June-2022     Ankit Pant           Baseline template
+######################################################################################################################################################
+Description: Creates 3 VPC endpoint services for your private ev2 instances to connect to SSM agent and come under fleet manager.
+
+Parameters:
+  SecurityGroupId:
+    Type: String
+    Description: Enter the SG id
+  VPCId:
+    Type: String
+    Description: Enter the VPC id for which you want to create the VPC endpoint.
+Resources:
+  SSMEndpoint1:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: false
+      SecurityGroupIds:
+        - !Ref SecurityGroupId
+      ServiceName: "com.amazonaws.us-east-1.ssm" # Required
+      SubnetIds:
+        - subnet-0e27a7bc75b459af0 # Enter the private subnet subnet id where your ec2 instance is placed
+        - subnet-0e2a1eb7ff328ccb0 # Enter the private subnet subnet id where your ec2 instance is placed
+      VpcEndpointType: "Interface"
+      VpcId:  !Ref VPCId # Required
+      PrivateDnsEnabled: true
+  SSMEndpoint2:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: false
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      ServiceName: "com.amazonaws.us-east-1.ssmmessages" # Required
+      SubnetIds:
+        - subnet-0e27a7bc75b459af0 # Enter the private subnet subnet id where your ec2 instance is placed
+        - subnet-0e2a1eb7ff328ccb0 # Enter the private subnet subnet id where your ec2 instance is placed
+      VpcEndpointType: "Interface"
+      VpcId:  !Ref VPCId # Required
+      PrivateDnsEnabled: true
+  SSMEndpoint3:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: false
+      SecurityGroupIds: 
+        - !Ref SecurityGroupId
+      ServiceName: "com.amazonaws.us-east-1.ec2messages" # Required
+      SubnetIds:
+        - subnet-0e27a7bc75b459af0 # Enter the private subnet subnet id where your ec2 instance is placed
+        - subnet-0e2a1eb7ff328ccb0 # Enter the private subnet subnet id where your ec2 instance is placed
+      VpcEndpointType: "Interface"
+      VpcId:  !Ref VPCId # Required
+      PrivateDnsEnabled: true
