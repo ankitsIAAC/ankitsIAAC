@@ -1,3 +1,5 @@
+**Below document gives a summary of what these yaml files will do.**
+
 Ec2 Basic - The cloudformation template creates an Ec2 instance in the subnet, AZ of your choice and with Key, Sec group, Name, Type that you choose in parameters.
 
 
